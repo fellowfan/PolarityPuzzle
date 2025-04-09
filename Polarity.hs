@@ -40,8 +40,8 @@ mutateBoard board i j newVal =
 -- if i == length board && j == 0 then
 solvePuzzle :: [String] -> [Int] -> [Int] -> [Int] -> [Int] -> Int -> Int -> [String]
 solvePuzzle board left right top bot i j
-  | i == length board && j == 0 && checkSpecs left right top bot = print(rules)
-  | j >= length rules !! 0 = solvePuzzle board left right top bot (i+1) 0
+  | i == length board && j == 0 && checkSpecs left right top bot = print(board)
+  | j >= length board !! 0 = solvePuzzle board left right top bot (i+1) 0
   | otherwise =
     
     -- Check for Horizontal Placements
@@ -70,37 +70,40 @@ solvePuzzle board left right top bot i j
               in 
                 solvePuzzle newboard2 left right top bot i j+2
           else
-            
-    else 
-      -- Check for Vertical Placements
-      if board !! i !! j == "T" then
-        -- +- Condition
-        if canPutVertical board i j "+-" then
-          let
-            newboard = mutateBoard board i j "+"
-            newboard2 = mutateBoard board i+1 j "-"
-          in
-            solvePuzzle newboard2 left right top bot i j+1
-        else
-          -- -+ Condition 
-          if canPutVertical board i j "-+" then
-            let
-              newboard = mutateBoard board i j "-"
-              newboard2 = mutateBoard board i+1 j "+"
-            in
-              solvePuzzle newboard2 left right top bot i j+1
-          else
-            -- XX Condition
-            if canPutVertical board i j "XX" then
-              let
-                newboard = mutateBoard board i j "X"
-                newboard2 = mutateBoard board i+1 j "X"
-              in
-                solvePuzzle newboard2 left right top bot i j+1
-            else
-              solvePuzzle board left right top bot i j+1
+            solveHelper board left right top bot i j -- To deal with Vertical Orientations
+    
     -- If none work, backtrack
     else 
       solvePuzzle board left right top bot i j+1
+
+
+solveHelper :: [String] -> [Int] -> [Int] -> [Int] -> [Int] -> Int -> Int -> [String]
+solveHelper board left right top bot i j 
+  | board !! i !! j == "T" = 
+    -- +- Condition
+      if canPutVertical board i j "+-" then
+        let
+          newboard = mutateBoard board i j "+"
+          newboard2 = mutateBoard board i+1 j "-"
+        in
+          solvePuzzle newboard2 left right top bot i j+1
+      else
+        -- -+ Condition 
+        if canPutVertical board i j "-+" then
+          let
+            newboard = mutateBoard board i j "-"
+            newboard2 = mutateBoard board i+1 j "+"
+          in
+            solvePuzzle newboard2 left right top bot i j+1
+        else
+          -- XX Condition
+          if canPutVertical board i j "XX" then
+            let
+              newboard = mutateBoard board i j "X"
+              newboard2 = mutateBoard board i+1 j "X"
+            in
+              solvePuzzle newboard2 left right top bot i j+1
+          else
+            solvePuzzle board left right top bot i j+1
 
   -- [ "+-+-X-" , "-+-+X+", "XX+-+-", "XX-+X+", "-+XXX-" ]
