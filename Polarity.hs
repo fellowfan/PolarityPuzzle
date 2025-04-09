@@ -12,6 +12,21 @@ polarity board specs =
   let (left, right, top, bot) = specs
   in solvePuzzle board left right top bot 0 0
 
+canPutHorizontal :: [String] -> Int -> Int -> String -> Bool
+canPutHorizontal board i j str
+  | j-1 >= 0 && board !! i !! (j-1) == head str = False
+  | i-1 >= 0 && board !! (i-1) !! j == head str = False
+  | i-1 >= 0 && board !! (i-1) !! (j+1) == str !! 1 = False
+  | j+2 < length (head board) && board !! i !! (j+2) == str !! 1 = False
+  | otherwise = True
+
+canPutVertical :: [String] -> Int -> Int -> String -> Bool
+canPutVertical board i j str
+  | j-1 >= 0 && board !! i !! (j-1) == head str = False
+  | i-1 >= 0 && board !! (i-1) !! j == head str = False
+  | j+1 < length (head board) && board !! i !! (j+1) == head str = False
+  | otherwise = True
+
 {-
 validBoard :: [String] -> Bool
 validBoard board = 
@@ -74,7 +89,7 @@ solvePuzzle board left right top bot i j
 
     -- If none work, backtrack
     else
-      solvePuzzle board left right top bot i j+1
+      solvePuzzle board left right top bot i (j+1)
 
 
 solveHelper :: [String] -> [Int] -> [Int] -> [Int] -> [Int] -> Int -> Int -> [String]
@@ -94,7 +109,7 @@ solveHelper board left right top bot i j
             newboard = mutateBoard board i j '-'
             newboard2 = mutateBoard board (i+1) j '+'
           in
-            solvePuzzle newboard2 left right top bot i j+1
+            solvePuzzle newboard2 left right top bot i (j+1)
         else
           -- XX Condition
           if canPutVertical board i j "XX" then
