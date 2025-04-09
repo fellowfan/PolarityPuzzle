@@ -51,9 +51,6 @@ solvePuzzle board left right top bot i j
         let
           newboard = mutateBoard board i j "+"
           newboard2 = mutateBoard newboard i j+1 "-"
-          -- Not valid --> Backtrack
-          newboard3 = mutateBoard board i j "L"
-          newboard4 = mutateBoard board i j+1 "R"
           in 
             solvePuzzle newboard2 left right top bot i j+2
           
@@ -62,9 +59,6 @@ solvePuzzle board left right top bot i j
         let
           newboard = mutateBoard board i j "-"
           newboard2 = mutateBoard board i j+1 "+"
-          -- Not valid --> Backtrack
-          newboard3 = mutateBoard board i j "L"
-          newboard4 = mutateBoard board i j+1 "R"
           in 
             solvePuzzle newboard2 left right top bot i j+2
 
@@ -73,9 +67,6 @@ solvePuzzle board left right top bot i j
         let
           newboard = mutateBoard board i j "X"
           newboard2 = mutateBoard board i j+1 "X"
-          -- Not valid --> Backtrack
-          newboard3 = mutateBoard board i j "L"
-          newboard4 = mutateBoard board i j+1 "R"
           in 
             solvePuzzle newboard2 left right top bot i j+2
 
@@ -86,9 +77,6 @@ solvePuzzle board left right top bot i j
         let
           newboard = mutateBoard board i j "+"
           newboard2 = mutateBoard board i+1 j "-"
-          -- Not valid --> Backtrack
-          newBoard3 = mutateBoard board i j "T"
-          newBoard4 = mutateBoard board i+1 j "B"
         in
           solvePuzzle newboard2 left right top bot i j+1
       
@@ -97,9 +85,6 @@ solvePuzzle board left right top bot i j
         let
           newboard = mutateBoard board i j "-"
           newboard2 = mutateBoard board i+1 j "+"
-          -- Not valid --> Backtrack
-          newBoard3 = mutateBoard board i j "T"
-          newBoard4 = mutateBoard board i+1 j "B"
         in
           solvePuzzle newboard2 left right top bot i j+1
 
@@ -108,13 +93,10 @@ solvePuzzle board left right top bot i j
         let
           newboard = mutateBoard board i j "X"
           newboard2 = mutateBoard board i+1 j "X"
-          -- Not valid --> Backtrack
-          newBoard3 = mutateBoard board i j "T"
-          newBoard4 = mutateBoard board i+1 j "B"
         in
           solvePuzzle newboard2 left right top bot i j+1
           
-
+    -- If none work, backtrack
     solvePuzzle board left right top bot i j+1
 
   -- [ "+-+-X-" , "-+-+X+", "XX+-+-", "XX-+X+", "-+XXX-" ]
