@@ -53,50 +53,54 @@ solvePuzzle board left right top bot i j
           newboard2 = mutateBoard newboard i j+1 "-"
           in 
             solvePuzzle newboard2 left right top bot i j+2
-          
-      -- -+ Condition 
-      if canPutHorizontal board i j "-+" then
-        let
-          newboard = mutateBoard board i j "-"
-          newboard2 = mutateBoard board i j+1 "+"
-          in 
-            solvePuzzle newboard2 left right top bot i j+2
-
-      -- XX Condition j=x, j+1=x, j=l,j+1=R, 
-      if canPutHorizontal board i j "XX" then
-        let
-          newboard = mutateBoard board i j "X"
-          newboard2 = mutateBoard board i j+1 "X"
-          in 
-            solvePuzzle newboard2 left right top bot i j+2
-
-    -- Check for Vertical Placements
-    if board !! i !! j == "T" then
-      -- +- Condition
-      if canPutVertical board i j "+-" then
-        let
-          newboard = mutateBoard board i j "+"
-          newboard2 = mutateBoard board i+1 j "-"
-        in
-          solvePuzzle newboard2 left right top bot i j+1
-      
-      -- -+ Condition 
-      if canPutVertical board i j "-+" then
-        let
-          newboard = mutateBoard board i j "-"
-          newboard2 = mutateBoard board i+1 j "+"
-        in
-          solvePuzzle newboard2 left right top bot i j+1
-
-      -- XX Condition
-      if canPutVertical board i j "XX" then
-        let
-          newboard = mutateBoard board i j "X"
-          newboard2 = mutateBoard board i+1 j "X"
-        in
-          solvePuzzle newboard2 left right top bot i j+1
-          
+      else
+        -- -+ Condition 
+        if canPutHorizontal board i j "-+" then
+          let
+            newboard = mutateBoard board i j "-"
+            newboard2 = mutateBoard board i j+1 "+"
+            in 
+              solvePuzzle newboard2 left right top bot i j+2
+        else
+          -- XX Condition j=x, j+1=x, j=l,j+1=R, 
+          if canPutHorizontal board i j "XX" then
+            let
+              newboard = mutateBoard board i j "X"
+              newboard2 = mutateBoard board i j+1 "X"
+              in 
+                solvePuzzle newboard2 left right top bot i j+2
+          else
+            
+    else 
+      -- Check for Vertical Placements
+      if board !! i !! j == "T" then
+        -- +- Condition
+        if canPutVertical board i j "+-" then
+          let
+            newboard = mutateBoard board i j "+"
+            newboard2 = mutateBoard board i+1 j "-"
+          in
+            solvePuzzle newboard2 left right top bot i j+1
+        else
+          -- -+ Condition 
+          if canPutVertical board i j "-+" then
+            let
+              newboard = mutateBoard board i j "-"
+              newboard2 = mutateBoard board i+1 j "+"
+            in
+              solvePuzzle newboard2 left right top bot i j+1
+          else
+            -- XX Condition
+            if canPutVertical board i j "XX" then
+              let
+                newboard = mutateBoard board i j "X"
+                newboard2 = mutateBoard board i+1 j "X"
+              in
+                solvePuzzle newboard2 left right top bot i j+1
+            else
+              solvePuzzle board left right top bot i j+1
     -- If none work, backtrack
-    solvePuzzle board left right top bot i j+1
+    else 
+      solvePuzzle board left right top bot i j+1
 
   -- [ "+-+-X-" , "-+-+X+", "XX+-+-", "XX-+X+", "-+XXX-" ]
