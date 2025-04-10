@@ -35,7 +35,7 @@ checkSpecs board left right top bot =
     posCountVer = replicate (length (head board)) 0
     negCountVer = replicate (length (head board)) 0
   in
-    checkSpecs2 board left right top bot posCountHor negCountHor posCountVer negCountVer
+    checkSpecs2 board 0 0 left right top bot posCountHor negCountHor posCountVer negCountVer
 
 checkSpecs2 :: [String] -> Int -> Int -> [Int] -> [Int] -> [Int] -> [Int] -> [Int] -> [Int] -> Bool
 checkSpecs2 board i j left right top bot posH negH posV negV =
@@ -59,7 +59,7 @@ checkH left right posH negH index isRepeat
       False
     else
       checkH left right posH negH (index+1) False
-  | otherwise checkH left right posH negH (index+1) False
+  | otherwise = checkH left right posH negH (index+1) False
 
 checkV :: [Int] -> [Int] -> [Int] -> [Int] -> Int -> Bool -> Bool
 checkV top bot posV negV index isRepeat
@@ -74,26 +74,26 @@ checkV top bot posV negV index isRepeat
       False
     else
       checkV top bot posV negV (index+1) False
-  | otherwise checkV top bot posV negV (index+1) False
+  | otherwise = checkV top bot posV negV (index+1) False
 
 hLoop :: [String] -> Int -> Int -> [Int] -> [Int] -> ([Int], [Int])
-hLoop [] _ _ _ _ = []
+hLoop [] _ _ pos neg = (pos, neg)
 hLoop (x:xs) i j posCountHor negCountHor
-  | x == [+] = 
+  | x == ['+'] = 
     let posNew = mutateList posCountHor i
     in hLoop xs (i+1) j (posNew, negCountHor)
-  | x == [-] =
+  | x == ['-'] =
     let negNew = mutateList negCountHor i
     in hLoop xs (i+1) j (posCountHor, negNew) 
   | otherwise = hLoop xs (i+1) j (posCountHor, negCountHor) 
 
 vLoop :: [String] -> Int -> Int -> [Int] -> [Int] -> ([Int], [Int])
-vLoop [] _ _ _ _ = []
+vLoop [] _ _ pos neg = (pos, neg)
 vLoop (x:xs) i j posCountVer negCountVer
-  | x == [+] =  
+  | x == ['+'] =  
     let posNew = mutateList posCountVer j
     in vLoop (xs) i (j+1) (posNew, negCountVer)
-  | x == [-] =
+  | x == ['-'] =
     let negNew = mutateList negCountVer j
     in vLoop (xs) i (j+1) (posCountVer, negNew) 
   | otherwise = vLoop (xs) i (j+1) (posCountVer, negCountVer) 
