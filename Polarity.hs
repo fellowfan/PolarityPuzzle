@@ -27,33 +27,33 @@ canPutVertical board i j str
   | j+1 < length (head board) && board !! i !! (j+1) == head str = False
   | otherwise = True
 
-checkSpecs :: [String] -> [Int] -> [Int] -> [Int] -> [Int] -> Bool
-checkSpecs board left right top bot =
+checkSpecs :: [String] -> [Int] -> [Int] -> [Int] -> [Int] -> Int -> Int -> Bool
+checkSpecs board left right top bot i j =
   let
     posCountHor = replicate (length board) 0
     negCountHor = replicate (length board) 0
     posCountVer = replicate (length (head board)) 0
     negCountVer = replicate (length (head board)) 0
   in
-    checkSpecs2 board 0 0 left right top bot posCountHor negCountHor posCountVer negCountVer
+    checkSpecs2 board left right top bot posCountHor negCountHor posCountVer negCountVer i j
 
-checkSpecs2 :: [String] -> Int -> Int -> [Int] -> [Int] -> [Int] -> [Int] -> [Int] -> [Int] -> Bool
-checkSpecs2 board i j left right top bot posH negH posV negV =
+checkSpecs2 :: [String] -> [Int] -> [Int] -> [Int] -> [Int] -> [Int] -> [Int] -> [Int] -> [Int] -> Int -> Int -> Bool
+checkSpecs2 board left right top bot posH negH posV negV i j =
   let
-    (newPosH, newNegH) = hLoop board i j posH negH 
+    (newPosH, newNegH) = hLoop board i j posH negH
     (newPosV, newNegV) = vLoop board i j posV negV
   in
-    (checkH left right newPosH newNegH 0 False) && (checkV top bot newPosV newNegV)
+    checkH left right newPosH newNegH 0 False && checkV top bot newPosV newNegV 0 False
 
 
 checkH :: [Int] -> [Int] -> [Int] -> [Int] -> Int -> Bool -> Bool
 checkH left right posH negH index isRepeat
   | index >= length posH = True
   | left !! index != -1 && isRepeat == False =
-    if posH !! index != (left !! index) then 
+    if posH !! index != (left !! index) then
       False
-    else 
-      checkH left right posH negH index True 
+    else
+      checkH left right posH negH index True
   | right !! index != -1 && isRepeat =
     if negH !! index != (right !! index) then
       False
@@ -65,10 +65,10 @@ checkV :: [Int] -> [Int] -> [Int] -> [Int] -> Int -> Bool -> Bool
 checkV top bot posV negV index isRepeat
   | index >= length posV = True
   | top !! index != -1 && isRepeat == False =
-    if posV !! index != (top !! index) then 
+    if posV !! index != (top !! index) then
       False
-    else 
-      checkV top bot posV negV index True 
+    else
+      checkV top bot posV negV index True
   | bot !! index != -1 && isRepeat =
     if negV !! index != (bot !! index) then
       False
@@ -79,24 +79,24 @@ checkV top bot posV negV index isRepeat
 hLoop :: [String] -> Int -> Int -> [Int] -> [Int] -> ([Int], [Int])
 hLoop [] _ _ pos neg = (pos, neg)
 hLoop (x:xs) i j posCountHor negCountHor
-  | x == ['+'] = 
+  | x == ['+'] =
     let posNew = mutateList posCountHor i
     in hLoop xs (i+1) j (posNew, negCountHor)
   | x == ['-'] =
     let negNew = mutateList negCountHor i
-    in hLoop xs (i+1) j (posCountHor, negNew) 
-  | otherwise = hLoop xs (i+1) j (posCountHor, negCountHor) 
+    in hLoop xs (i+1) j (posCountHor, negNew)
+  | otherwise = hLoop xs (i+1) j (posCountHor, negCountHor)
 
 vLoop :: [String] -> Int -> Int -> [Int] -> [Int] -> ([Int], [Int])
 vLoop [] _ _ pos neg = (pos, neg)
 vLoop (x:xs) i j posCountVer negCountVer
-  | x == ['+'] =  
+  | x == ['+'] =
     let posNew = mutateList posCountVer j
     in vLoop (xs) i (j+1) (posNew, negCountVer)
   | x == ['-'] =
     let negNew = mutateList negCountVer j
-    in vLoop (xs) i (j+1) (posCountVer, negNew) 
-  | otherwise = vLoop (xs) i (j+1) (posCountVer, negCountVer) 
+    in vLoop (xs) i (j+1) (posCountVer, negNew)
+  | otherwise = vLoop (xs) i (j+1) (posCountVer, negCountVer)
 
 mutateList :: [Int] -> Int -> [Int]
 mutateList old index =
