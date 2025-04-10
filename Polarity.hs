@@ -27,16 +27,6 @@ canPutVertical board i j str
   | j+1 < length (head board) && board !! i !! (j+1) == head str = False
   | otherwise = True
 
-mutateBoard :: [String] -> Int -> Int -> Char -> [String]
-mutateBoard board i j newVal =
-  take i board ++
-  [mutateRow (board !! i) j newVal] ++
-  drop (i+1) board
-  where
-    mutateRow :: String -> Int -> Char -> String
-    mutateRow str col newVal =
-      take col str ++ [newVal] ++ drop (col+1) str
-
 checkSpecs :: [String] -> [Int] -> [Int] -> [Int] -> [Int] -> Bool
 checkSpecs board left right top bot =
   let
@@ -45,15 +35,16 @@ checkSpecs board left right top bot =
     posCountVer = replicate (length (head board)) 0
     negCountVer = replicate (length (head board)) 0
   in
-    checkSpec2 board left right top bot posCountHor negCountHor posCountVer negCountVer
+    checkSpecs2 board left right top bot posCountHor negCountHor posCountVer negCountVer
 
 checkSpecs2 :: [String] -> Int -> Int -> [Int] -> [Int] -> [Int] -> [Int] -> [Int] -> [Int] -> Bool
 checkSpecs2 board i j left right top bot posH negH posV negV =
   let
     (newPosH, newNegH) = hLoop board i j posH negH 
-    (newPosV, newPosH) = vLoop board i j posV negV
+    (newPosV, newNegV) = vLoop board i j posV negV
   in
-    (checkH ) && (checkV)
+    (checkH left right newPosH newNegH 0 False) && (checkV top bot newPosV newNegV)
+
 
 checkH :: [Int] -> [Int] -> [Int] -> [Int] -> Int -> Bool -> Bool
 checkH left right posH negH index isRepeat
@@ -85,7 +76,6 @@ checkV top bot posV negV index isRepeat
       checkV top bot posV negV (index+1) False
   | otherwise checkV top bot posV negV (index+1) False
 
-
 hLoop :: [String] -> Int -> Int -> [Int] -> [Int] -> ([Int], [Int])
 hLoop [] _ _ _ _ = []
 hLoop (x:xs) i j posCountHor negCountHor
@@ -111,6 +101,17 @@ vLoop (x:xs) i j posCountVer negCountVer
 mutateList :: [Int] -> Int -> [Int]
 mutateList old index =
   take index old ++ [(old !! index) + 1] ++ drop (index+1) old
+
+
+mutateBoard :: [String] -> Int -> Int -> Char -> [String]
+mutateBoard board i j newVal =
+  take i board ++
+  [mutateRow (board !! i) j newVal] ++
+  drop (i+1) board
+  where
+    mutateRow :: String -> Int -> Char -> String
+    mutateRow str col newVal =
+      take col str ++ [newVal] ++ drop (col+1) str
 
 
 -- if i == length board && j == 0 then
