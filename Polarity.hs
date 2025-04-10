@@ -28,17 +28,44 @@ canPutVertical board i j str
   | otherwise = True
 
 {-
-validBoard :: [String] -> Bool
-validBoard board = 
-  let rows = length board
-      cols = if null board then 0 else length (head board)
-      grid = listArray ((0,0), (rows-1,cols-1)) (concat board)
-    
-      -- in all (`elem` "LRBTX+-") (concat board) && validPairs grid
--}
-
 checkSpecs :: [Int] -> [Int] -> [Int] -> [Int] -> Bool
-checkSpecs left right top bot = True
+checkSpecs left right top bot =
+  let
+    posCountHor = replicate (length board) 0
+    negCountHor = replicate (length board) 0
+    posCountVer = replicate (length (head board)) 0
+    negCountVer = replicate (length (head board)) 0
+  in
+    checkSpecs2 left right top bot posCountHor negCountHor posCountVer negCountVer
+
+
+
+hLoop :: [String] -> Int -> Int -> [Int] -> [Int] -> ([Int], [Int])
+hLoop [] _ _ _ _ = []
+hLoop (x:xs) i j posCountHor negCountHor
+  | x == [+] = 
+    let posNew = mutateList posCountHor i
+    in hLoop xs (i+1) j (posNew, negCountHor)
+  | x == [-] =
+    let negNew = mutateList negCountHor i
+    in hLoop xs (i+1) j (posCountHor, negNew) 
+  | otherwise = hLoop xs (i+1) j (posCountHor, negCountHor) 
+
+vLoop :: [String] -> Int -> Int -> [Int] -> [Int] -> ([Int], [Int])
+vLoop [] _ _ _ _ = []
+vLoop (x:xs) i j posCountVer negCountVer
+  | x == [+] =  
+    let posNew = mutateList posCountVer j
+    in vLoop (xs) i (j+1) (posNew, negCountVer)
+  | x == [-] =
+    let negNew = mutateList negCountVer j
+    in vLoop (xs) i (j+1) (posCountVer, negNew) 
+  | otherwise = vLoop (xs) i (j+1) (posCountVer, negCountVer) 
+
+mutateList :: [Int] -> Int -> [Int]
+mutateList old index =
+  take index old ++ [(old !! index) + 1] ++ drop (index+1) old
+-}
 
 mutateBoard :: [String] -> Int -> Int -> Char -> [String]
 mutateBoard board i j newVal =
@@ -50,12 +77,14 @@ mutateBoard board i j newVal =
     mutateRow str col newVal =
       take col str ++ [newVal] ++ drop (col+1) str
 
+checkSpecs :: [String] -> [Int] -> [Int] -> [Int] -> [Int] -> Bool
+checkSpecs board left right top bot = True
 
 
 -- if i == length board && j == 0 then
 solvePuzzle :: [String] -> [Int] -> [Int] -> [Int] -> [Int] -> Int -> Int -> [String]
 solvePuzzle board left right top bot i j
-  | i == length board && j == 0 && checkSpecs left right top bot = board
+  | i == length board && j == 0 && checkSpecs board left right top bot = board
   | j >= length (head board) = solvePuzzle board left right top bot (i+1) 0
   | otherwise =
 
