@@ -92,11 +92,11 @@ vLoop [] _ _ pos neg = (pos, neg)
 vLoop (x:xs) i j posCountVer negCountVer
   | x == ['+'] =
     let posNew = mutateList posCountVer j
-    in vLoop (xs) i (j+1) posNew negCountVer
+    in vLoop xs i (j+1) posNew negCountVer
   | x == ['-'] =
     let negNew = mutateList negCountVer j
-    in vLoop (xs) i (j+1) posCountVer negNew
-  | otherwise = vLoop (xs) i (j+1) posCountVer negCountVer
+    in vLoop xs i (j+1) posCountVer negNew
+  | otherwise = vLoop xs i (j+1) posCountVer negCountVer
 
 mutateList :: [Int] -> Int -> [Int]
 mutateList old index =
@@ -122,7 +122,7 @@ solvePuzzle board left right top bot i j
   | otherwise =
 
     -- Check for Horizontal Placements
-    if board !! i !! j == 'L' then
+    if (board !! i) !! j == 'L' then
       -- +- Condition
       if canPutHorizontal board i j "+-" then
         let
@@ -156,7 +156,7 @@ solvePuzzle board left right top bot i j
 
 solveHelper :: [String] -> [Int] -> [Int] -> [Int] -> [Int] -> Int -> Int -> [String]
 solveHelper board left right top bot i j
-  | board !! i !! j == 'T' =
+  | (board !! i) !! j == 'T' =
     -- +- Condition
       if canPutVertical board i j "+-" then
         let
