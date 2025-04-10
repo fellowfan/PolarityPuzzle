@@ -49,13 +49,13 @@ checkSpecs2 board left right top bot posH negH posV negV i j =
 checkH :: [Int] -> [Int] -> [Int] -> [Int] -> Int -> Bool -> Bool
 checkH left right posH negH index isRepeat
   | index >= length posH = True
-  | left !! index != -1 && isRepeat == False =
-    if posH !! index != (left !! index) then
+  | left !! index /= -1 && not isRepeat =
+    if posH !! index /= (left !! index) then
       False
     else
       checkH left right posH negH index True
-  | right !! index != -1 && isRepeat =
-    if negH !! index != (right !! index) then
+  | right !! index /= -1 && isRepeat =
+    if negH !! index /= (right !! index) then
       False
     else
       checkH left right posH negH (index+1) False
@@ -64,13 +64,13 @@ checkH left right posH negH index isRepeat
 checkV :: [Int] -> [Int] -> [Int] -> [Int] -> Int -> Bool -> Bool
 checkV top bot posV negV index isRepeat
   | index >= length posV = True
-  | top !! index != -1 && isRepeat == False =
-    if posV !! index != (top !! index) then
+  | top !! index /= -1 && not isRepeat =
+    if posV !! index /= (top !! index) then
       False
     else
       checkV top bot posV negV index True
-  | bot !! index != -1 && isRepeat =
-    if negV !! index != (bot !! index) then
+  | bot !! index /= -1 && isRepeat =
+    if negV !! index /= (bot !! index) then
       False
     else
       checkV top bot posV negV (index+1) False
@@ -81,22 +81,22 @@ hLoop [] _ _ pos neg = (pos, neg)
 hLoop (x:xs) i j posCountHor negCountHor
   | x == ['+'] =
     let posNew = mutateList posCountHor i
-    in hLoop xs (i+1) j (posNew, negCountHor)
+    in hLoop xs (i+1) j posNew negCountHor
   | x == ['-'] =
     let negNew = mutateList negCountHor i
-    in hLoop xs (i+1) j (posCountHor, negNew)
-  | otherwise = hLoop xs (i+1) j (posCountHor, negCountHor)
+    in hLoop xs (i+1) j posCountHor negNew
+  | otherwise = hLoop xs (i+1) j posCountHor negCountHor
 
 vLoop :: [String] -> Int -> Int -> [Int] -> [Int] -> ([Int], [Int])
 vLoop [] _ _ pos neg = (pos, neg)
 vLoop (x:xs) i j posCountVer negCountVer
   | x == ['+'] =
     let posNew = mutateList posCountVer j
-    in vLoop (xs) i (j+1) (posNew, negCountVer)
+    in vLoop (xs) i (j+1) posNew negCountVer
   | x == ['-'] =
     let negNew = mutateList negCountVer j
-    in vLoop (xs) i (j+1) (posCountVer, negNew)
-  | otherwise = vLoop (xs) i (j+1) (posCountVer, negCountVer)
+    in vLoop (xs) i (j+1) posCountVer negNew
+  | otherwise = vLoop (xs) i (j+1) posCountVer negCountVer
 
 mutateList :: [Int] -> Int -> [Int]
 mutateList old index =
@@ -117,7 +117,7 @@ mutateBoard board i j newVal =
 -- if i == length board && j == 0 then
 solvePuzzle :: [String] -> [Int] -> [Int] -> [Int] -> [Int] -> Int -> Int -> [String]
 solvePuzzle board left right top bot i j
-  | i == length board && j == 0 && checkSpecs board left right top bot = board
+  | i == length board && j == 0 && checkSpecs board left right top bot 0 0 = board
   | j >= length (head board) = solvePuzzle board left right top bot (i+1) 0
   | otherwise =
 
