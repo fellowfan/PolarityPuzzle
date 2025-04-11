@@ -2,16 +2,17 @@ module Polarity where
 
 import Data.Array
 import Control.Monad
+import Control.Applicative
 import Data.List
 import Data.Maybe
 
 type Grid = Array (Int, Int) Char
 
 polarity :: [String] -> ([Int], [Int], [Int], [Int]) -> [String]
-polarity board specs =
-  case solvePuzzle board left right top bot 0 0 of
-    Just solution -> solution
-    Nothing -> []  -- Return empty list if no solution found
+polarity board specs = 
+    case solvePuzzle board left right top bot 0 0 of
+        Just solution -> solution
+        Nothing -> []  -- Only return empty after exhausting all options
   where
     (left, right, top, bot) = specs
 
@@ -30,84 +31,28 @@ canPutVertical board i j str
   | j+1 < length (head board) && (board !! i) !! (j+1) == head str = False
   | otherwise = True
 
-checkSpecs :: [String] -> [Int] -> [Int] -> [Int] -> [Int] -> Int -> Int -> Bool
-checkSpecs board left right top bot i j =
-  let
-    posCountHor = replicate (length board) 0
-    negCountHor = replicate (length board) 0
-    posCountVer = replicate (length (head board)) 0
-    negCountVer = replicate (length (head board)) 0
-  in
-    checkSpecs2 board left right top bot posCountHor negCountHor posCountVer negCountVer i j
-
-checkSpecs2 :: [String] -> [Int] -> [Int] -> [Int] -> [Int] -> [Int] -> [Int] -> [Int] -> [Int] -> Int -> Int -> Bool
-checkSpecs2 board left right top bot posH negH posV negV i j =
-  let
-    (newPosH, newNegH) = hLoop board i j posH negH
-    (newPosV, newNegV) = vLoop board i j posV negV
-  in
-    checkH left right newPosH newNegH 0 False && checkV top bot newPosV newNegV 0 False
-
-
-checkH :: [Int] -> [Int] -> [Int] -> [Int] -> Int -> Bool -> Bool
-checkH left right posH negH index isRepeat
-  | index >= length posH = True
-  | left !! index /= -1 && not isRepeat =
-    if posH !! index /= (left !! index) then
-      False
-    else
-      checkH left right posH negH index True
-  | right !! index /= -1 && isRepeat =
-    if negH !! index /= (right !! index) then
-      False
-    else
-      checkH left right posH negH (index+1) False
-  | otherwise = checkH left right posH negH (index+1) False
-
-checkV :: [Int] -> [Int] -> [Int] -> [Int] -> Int -> Bool -> Bool
-checkV top bot posV negV index isRepeat
-  | index >= length posV = True
-  | top !! index /= -1 && not isRepeat =
-    if posV !! index /= (top !! index) then
-      False
-    else
-      checkV top bot posV negV index True
-  | bot !! index /= -1 && isRepeat =
-    if negV !! index /= (bot !! index) then
-      False
-    else
-      checkV top bot posV negV (index+1) False
-  | otherwise = checkV top bot posV negV (index+1) False
-
-
-hLoop :: [String] -> Int -> Int -> [Int] -> [Int] -> ([Int], [Int])
-hLoop [] _ _ pos neg = (pos, neg)
-hLoop (row:rows) i j pos neg =
-  -- Get the j-th character in the row (safe version)
-  let cell = if j < length row then row !! j else ' ' 
-  in case cell of
-    '+' -> hLoop rows (i+1) j (mutateList pos i) neg
-    '-' -> hLoop rows (i+1) j pos (mutateList neg i)
-    _   -> hLoop rows (i+1) j pos neg
-
-vLoop :: [String] -> Int -> Int -> [Int] -> [Int] -> ([Int], [Int])
-vLoop board i j pos neg =
-  foldl
-    (\(p, n) row ->
-        let cell = if j < length row then row !! j else ' '
-        in case cell of
-            '+' -> (mutateList p j, n)
-            '-' -> (p, mutateList n j)
-            _   -> (p, n))
-    (pos, neg)
-    board
-
-
-
-mutateList :: [Int] -> Int -> [Int]
-mutateList old index =
-  take index old ++ [(old !! index) + 1] ++ drop (index+1) old
-
+checkSpecs :: [String] -> [Int] -> [Int] -> [Int] -> [Int] -> Bool
+checkSpecs board left right top bot =
+  let rows = board
+      cols = transpose board
+      
+      -- Count '+' and '-' in rows (ignoring 'X')
+      posRows = map (count '+') rows
+      negRows = map (count '-') rows
+      
+      -- Count '+' and '-' in columns (ignoring 'X')
+      posCols = map (count '+') cols
+      negCols = map (count '-') cols
+      
+      -- Check all constraints (-1 means no constraint)
+      checkConstraint spec cnt = spec == -1 || cnt == spec
+      
+  in and (zipWith checkConstraint left posRows) &&  -- Check left (row + counts)
+     and (zipWith checkConstraint right negRows) && -- Check right (row - counts)
+     and (zipWith checkConstraint top posCols) &&   -- Check top (col + counts)
+     and (zipWith checkConstraint bot negCols)      -- Check bottom (col - counts)
+  where
+    count c = length . filter (== c)
 
 mutateBoard :: [String] -> Int -> Int -> Char -> [String]
 mutateBoard board i j newVal =
@@ -120,76 +65,40 @@ mutateBoard board i j newVal =
       take col str ++ [newVal] ++ drop (col+1) str
 
 
--- if i == length board && j == 0 then
 solvePuzzle :: [String] -> [Int] -> [Int] -> [Int] -> [Int] -> Int -> Int -> Maybe [String]
 solvePuzzle board left right top bot i j
-  | i >= length board && j == 0 && checkSpecs board left right top bot 0 0 = Just board
+  | i >= length board && j == 0 = 
+      if checkSpecs board left right top bot 
+      then Just board 
+      else Nothing
   | j >= length (head board) = solvePuzzle board left right top bot (i+1) 0
-  | i >= length board = Nothing
   | otherwise =
+      case (board !! i) !! j of
+        'L' -> tryAllPatterns board i j
+        'T' -> tryAllVerticalPatterns board i j
+        _   -> solvePuzzle board left right top bot i (j+1)
+  where
+    tryAllPatterns board i j =
+      tryPattern "+-" <|> tryPattern "-+" <|> tryPattern "XX"
+      where
+        tryPattern pat = do
+          guard (canPutHorizontal board i j pat)
+          let [c1, c2] = pat
+          let newboard = mutateBoard (mutateBoard board i j c1) i (j+1) c2
+          solvePuzzle newboard left right top bot i (j+2)
 
-    -- Check for Horizontal Placements
-    if (board !! i) !! j == 'L' then
-      -- +- Condition
-      if canPutHorizontal board i j "+-" then
-        let
-          newboard = mutateBoard board i j '+'
-          newboard2 = mutateBoard newboard i (j+1) '-'
-          in
-            solvePuzzle newboard2 left right top bot i (j+2)
-      else
-        -- -+ Condition 
-        if canPutHorizontal board i j "-+" then
-          let
-            newboard = mutateBoard board i j '-'
-            newboard2 = mutateBoard newboard i (j+1) '+'
-            in
-              solvePuzzle newboard2 left right top bot i (j+2)
-        else
-          -- XX Condition j=x, j+1=x, j=l,j+1=R, 
-          if canPutHorizontal board i j "XX" then
-            let
-              newboard = mutateBoard board i j 'X'
-              newboard2 = mutateBoard newboard i (j+1) 'X'
-              in
-                solvePuzzle newboard2 left right top bot i (j+2)
-          else
-            solvePuzzle board left right top bot i (j+1)
+    tryAllVerticalPatterns board i j =
+      tryPattern "+-" <|> tryPattern "-+" <|> tryPattern "XX"
+      where
+        tryPattern pat = do
+          guard (canPutVertical board i j pat)
+          let [c1, c2] = pat
+          let newboard = mutateBoard (mutateBoard board i j c1) (i+1) j c2
+          solvePuzzle newboard left right top bot i (j+1)
 
-    -- To deal with Vertical Orientations
-    else
-      solveHelper board left right top bot i j
-      
-
-
-solveHelper :: [String] -> [Int] -> [Int] -> [Int] -> [Int] -> Int -> Int -> Maybe [String]
-solveHelper board left right top bot i j
-  | (board !! i) !! j == 'T' =
-    -- +- Condition
-      if canPutVertical board i j "+-" then
-        let
-          newboard = mutateBoard board i j '+'
-          newboard2 = mutateBoard newboard (i+1) j '-'
-        in
-          solvePuzzle newboard2 left right top bot i (j+1)
-      else
-        -- -+ Condition 
-        if canPutVertical board i j "-+" then
-          let
-            newboard = mutateBoard board i j '-'
-            newboard2 = mutateBoard newboard (i+1) j '+'
-          in
-            solvePuzzle newboard2 left right top bot i (j+1)
-        else
-          -- XX Condition
-          if canPutVertical board i j "XX" then
-            let
-              newboard = mutateBoard board i j 'X'
-              newboard2 = mutateBoard newboard (i+1) j 'X'
-            in
-              solvePuzzle newboard2 left right top bot i (j+1)
-          else
-            solvePuzzle board left right top bot i (j+1)
-  | otherwise = solvePuzzle board left right top bot i (j+1)
-
+    -- Helper: Check constraints after modifying the board
+    checkAndContinue newboard nextJ =
+      if checkSpecs newboard left right top bot
+      then solvePuzzle newboard left right top bot i nextJ
+      else Nothing  -- Backtrack if constraints fail
   -- [ "+-+-X-" , "-+-+X+", "XX+-+-", "XX-+X+", "-+XXX-" ]
