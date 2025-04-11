@@ -123,7 +123,7 @@ mutateBoard board i j newVal =
 -- if i == length board && j == 0 then
 solvePuzzle :: [String] -> [Int] -> [Int] -> [Int] -> [Int] -> Int -> Int -> Maybe [String]
 solvePuzzle board left right top bot i j
-  | i >= length board && j == 0 && checkSpecs board left right top bot 0 0 = Just board
+  | i >= length board && j == 0 && True = Just board --checkSpecs board left right top bot 0 0 = Just board
   | j >= length (head board) = solvePuzzle board left right top bot (i+1) 0
   | i >= length board = Nothing
   | otherwise =
@@ -154,11 +154,12 @@ solvePuzzle board left right top bot i j
               in
                 solvePuzzle newboard2 left right top bot i (j+2)
           else
-            solveHelper board left right top bot i j -- To deal with Vertical Orientations
+            solvePuzzle board left right top bot i (j+1)
 
-    -- If none work, backtrack
+    -- To deal with Vertical Orientations
     else
-      solvePuzzle board left right top bot i (j+1)
+      solveHelper board left right top bot i j
+      
 
 
 solveHelper :: [String] -> [Int] -> [Int] -> [Int] -> [Int] -> Int -> Int -> Maybe [String]
@@ -189,5 +190,6 @@ solveHelper board left right top bot i j
               solvePuzzle newboard2 left right top bot i (j+1)
           else
             solvePuzzle board left right top bot i (j+1)
+  | otherwise = solvePuzzle board left right top bot i (j+1)
 
   -- [ "+-+-X-" , "-+-+X+", "XX+-+-", "XX-+X+", "-+XXX-" ]
