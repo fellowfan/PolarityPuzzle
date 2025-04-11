@@ -142,7 +142,7 @@ solvePuzzle board left right top bot i j
         if canPutHorizontal board i j "-+" then
           let
             newboard = mutateBoard board i j '-'
-            newboard2 = mutateBoard board i (j+1) '+'
+            newboard2 = mutateBoard newboard i (j+1) '+'
             in
               solvePuzzle newboard2 left right top bot i (j+2)
         else
@@ -150,7 +150,7 @@ solvePuzzle board left right top bot i j
           if canPutHorizontal board i j "XX" then
             let
               newboard = mutateBoard board i j 'X'
-              newboard2 = mutateBoard board i (j+1) 'X'
+              newboard2 = mutateBoard newboard i (j+1) 'X'
               in
                 solvePuzzle newboard2 left right top bot i (j+2)
           else
@@ -169,7 +169,7 @@ solveHelper board left right top bot i j
       if canPutVertical board i j "+-" then
         let
           newboard = mutateBoard board i j '+'
-          newboard2 = mutateBoard board (i+1) j '-'
+          newboard2 = mutateBoard newboard (i+1) j '-'
         in
           solvePuzzle newboard2 left right top bot i (j+1)
       else
@@ -177,7 +177,7 @@ solveHelper board left right top bot i j
         if canPutVertical board i j "-+" then
           let
             newboard = mutateBoard board i j '-'
-            newboard2 = mutateBoard board (i+1) j '+'
+            newboard2 = mutateBoard newboard (i+1) j '+'
           in
             solvePuzzle newboard2 left right top bot i (j+1)
         else
@@ -185,7 +185,7 @@ solveHelper board left right top bot i j
           if canPutVertical board i j "XX" then
             let
               newboard = mutateBoard board i j 'X'
-              newboard2 = mutateBoard board (i+1) j 'X'
+              newboard2 = mutateBoard newboard (i+1) j 'X'
             in
               solvePuzzle newboard2 left right top bot i (j+1)
           else
