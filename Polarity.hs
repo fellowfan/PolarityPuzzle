@@ -1,96 +1,53 @@
 module Polarity where
 
+import Data.Array
+import Control.Monad
 import Control.Applicative
 import Data.List
-import Debug.Trace
-import Control.Monad
 import Data.Maybe
 
+type Grid = Array (Int, Int) Char
+
 polarity :: [String] -> ([Int], [Int], [Int], [Int]) -> [String]
-polarity board specs = 
-    case solvePuzzle board left right top bot 0 0 of
-        Just solution | isValid solution -> solution
-        _ -> []
+polarity board specs =
+    fromMaybe [] (solvePuzzle board left right top bot 0 0)
   where
     (left, right, top, bot) = specs
 
-    -- Final solution validator
-    isValid b = checkSpecs b left right top bot && 
-                not (hasAdjacentSamePolarity b)
-
--- Relaxed placement rules
 canPutHorizontal :: [String] -> Int -> Int -> String -> Bool
-canPutHorizontal board i j _str =
-  j+1 < length (head board) &&  -- Room for pair
-  (board !! i) !! j == 'L' &&   -- Valid left marker
-  (board !! i) !! (j+1) == 'R'  -- Valid right marker
+canPutHorizontal board i j str
+  | j-1 >= 0 && (board !! i) !! (j-1) == head str = False
+  | i-1 >= 0 && (board !! (i-1)) !! j == head str = False
+  | i-1 >= 0 && (board !! (i-1)) !! (j+1) == str !! 1 = False
+  | j+2 < length (head board) && (board !! i) !! (j+2) == str !! 1 = False
+  | otherwise = True
 
 canPutVertical :: [String] -> Int -> Int -> String -> Bool
-canPutVertical board i j _str =
-  i+1 < length board &&         -- Room below
-  (board !! i) !! j == 'T' &&   -- Valid top marker
-  (board !! (i+1)) !! j == 'B'  -- Valid bottom marker
-
--- Check for ++ or -- in final solution
-hasAdjacentSamePolarity :: [String] -> Bool
-hasAdjacentSamePolarity board = any hasAdjacentRow board || any hasAdjacentCol (transpose board)
-  where
-    hasAdjacentRow row = any (\(a,b) -> a `elem` "+-" && a == b) $ zip row (tail row)
-    hasAdjacentCol col = any (\(a,b) -> a `elem` "+-" && a == b) $ zip col (tail col)
-
--- Keep original checkSpecs and mutateBoard
-
-solvePuzzle :: [String] -> [Int] -> [Int] -> [Int] -> [Int] -> Int -> Int -> Maybe [String]
-solvePuzzle board left right top bot i j
-  | i >= length board && j == 0 = 
-      if checkSpecs board left right top bot 
-      then Just board 
-      else Nothing
-  | j >= length (head board) = solvePuzzle board left right top bot (i+1) 0
-  | otherwise =
-      case (board !! i) !! j of
-        'L' -> tryPatterns board i j
-        'T' -> tryVerticalPatterns board i j
-        _   -> solvePuzzle board left right top bot i (j+1)
-  where
-    tryPatterns board i j =
-      let try pat = do
-            guard (canPutHorizontal board i j pat)
-            let [c1, c2] = pat
-            let newboard = mutateBoard (mutateBoard board i j c1) i (j+1) c2
-            solvePuzzle newboard left right top bot i (j+2)
-      in try "+-" <|> try "-+" <|> try "XX"
-
-    tryVerticalPatterns board i j =
-      let try pat = do
-            guard (canPutVertical board i j pat)
-            let [c1, c2] = pat
-            let newboard = mutateBoard (mutateBoard board i j c1) (i+1) j c2
-            solvePuzzle newboard left right top bot i (j+1)
-      in try "+-" <|> try "-+" <|> try "XX"
+canPutVertical board i j str
+  | j-1 >= 0 && (board !! i) !! (j-1) == head str = False
+  | i-1 >= 0 && (board !! (i-1)) !! j == head str = False
+  | j+1 < length (head board) && (board !! i) !! (j+1) == head str = False
+  | otherwise = True
 
 checkSpecs :: [String] -> [Int] -> [Int] -> [Int] -> [Int] -> Bool
 checkSpecs board left right top bot =
   let rows = board
       cols = transpose board
 
-      -- Count '+' and '-' in rows (ignoring 'X')
+      -- Count rows
       posRows = map (count '+') rows
       negRows = map (count '-') rows
 
-      -- Count '+' and '-' in columns (ignoring 'X')
+      -- Count columns
       posCols = map (count '+') cols
       negCols = map (count '-') cols
 
-      -- Check all constraints (-1 means no constraint)
       checkConstraint spec cnt = spec == -1 || cnt == spec
 
-  in and (zipWith checkConstraint left posRows) &&  -- Check left (row + counts)  -- Check left (row + counts)  -- Check left (row + counts)  -- Check left (row + counts)
-       -- Check left (row + counts)
-     and (zipWith checkConstraint right negRows) && -- Check right (row - counts) -- Check right (row - counts) -- Check right (row - counts) -- Check right (row - counts)
-      -- Check right (row - counts)
-     and (zipWith checkConstraint top posCols) &&   -- Check top (col + counts)   -- Check top (col + counts)   -- Check top (col + counts)
-     and (zipWith checkConstraint bot negCols)      -- Check bottom (col - counts)
+  in and (zipWith checkConstraint left posRows) &&
+     and (zipWith checkConstraint right negRows) &&
+     and (zipWith checkConstraint top posCols) &&
+     and (zipWith checkConstraint bot negCols)
   where
     count c = length . filter (== c)
 
@@ -103,3 +60,40 @@ mutateBoard board i j newVal =
     mutateRow :: String -> Int -> Char -> String
     mutateRow str col newVal =
       take col str ++ [newVal] ++ drop (col+1) str
+
+
+solvePuzzle :: [String] -> [Int] -> [Int] -> [Int] -> [Int] -> Int -> Int -> Maybe [String]
+solvePuzzle board left right top bot i j
+  | i >= length board && j == 0 =
+      if checkSpecs board left right top bot
+      then Just board
+      else Nothing
+  | j >= length (head board) = solvePuzzle board left right top bot (i+1) 0
+  | otherwise =
+      case (board !! i) !! j of
+        'L' -> tryAllPatterns board i j
+        'T' -> tryAllVerticalPatterns board i j
+        _   -> solvePuzzle board left right top bot i (j+1)
+  where
+    tryAllPatterns board i j =
+      tryPattern "+-" <|> tryPattern "-+" <|> tryPattern "XX"
+      where
+        tryPattern pat = do
+          guard (canPutHorizontal board i j pat)
+          let [c1, c2] = pat
+          let newboard = mutateBoard (mutateBoard board i j c1) i (j+1) c2
+          solvePuzzle newboard left right top bot i (j+2)
+
+    tryAllVerticalPatterns board i j =
+      tryPattern "+-" <|> tryPattern "-+" <|> tryPattern "XX"
+      where
+        tryPattern pat = do
+          guard (canPutVertical board i j pat)
+          let [c1, c2] = pat
+          let newboard = mutateBoard (mutateBoard board i j c1) (i+1) j c2
+          solvePuzzle newboard left right top bot i (j+1)
+
+    checkAndContinue newboard nextJ =
+      if checkSpecs newboard left right top bot
+      then solvePuzzle newboard left right top bot i nextJ
+      else Nothing
