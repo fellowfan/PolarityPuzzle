@@ -76,6 +76,7 @@ checkV top bot posV negV index isRepeat
       checkV top bot posV negV (index+1) False
   | otherwise = checkV top bot posV negV (index+1) False
 
+
 hLoop :: [String] -> Int -> Int -> [Int] -> [Int] -> ([Int], [Int])
 hLoop [] _ _ pos neg = (pos, neg)
 hLoop (x:xs) i j posCountHor negCountHor
