@@ -9,8 +9,11 @@ type Grid = Array (Int, Int) Char
 
 polarity :: [String] -> ([Int], [Int], [Int], [Int]) -> [String]
 polarity board specs =
-  let (left, right, top, bot) = specs
-  in solvePuzzle board left right top bot 0 0
+  case solvePuzzle board left right top bot 0 0 of
+    Just solution -> solution
+    Nothing -> []  -- Return empty list if no solution found
+  where
+    (left, right, top, bot) = specs
 
 canPutHorizontal :: [String] -> Int -> Int -> String -> Bool
 canPutHorizontal board i j str
@@ -88,15 +91,17 @@ hLoop (row:rows) i j pos neg =
     _   -> hLoop rows (i+1) j pos neg
 
 vLoop :: [String] -> Int -> Int -> [Int] -> [Int] -> ([Int], [Int])
-vLoop [] _ _ pos neg = (pos, neg)
-vLoop (col:cols) i j pos neg =
-  let 
-    -- Safe character access at position i (since we're processing columns)
-    cell = if i < length col then col !! i else ' '
-  in case cell of
-    '+' -> vLoop cols i (j+1) (mutateList pos j) neg  -- Increment column's + count
-    '-' -> vLoop cols i (j+1) pos (mutateList neg j)  -- Increment column's - count
-    _   -> vLoop cols i (j+1) pos neg                -- Ignore other characters
+vLoop board i j pos neg =
+  foldl
+    (\(p, n) row ->
+        let cell = if j < length row then row !! j else ' '
+        in case cell of
+            '+' -> (mutateList p j, n)
+            '-' -> (p, mutateList n j)
+            _   -> (p, n))
+    (pos, neg)
+    board
+
 
 
 mutateList :: [Int] -> Int -> [Int]
@@ -116,11 +121,11 @@ mutateBoard board i j newVal =
 
 
 -- if i == length board && j == 0 then
-solvePuzzle :: [String] -> [Int] -> [Int] -> [Int] -> [Int] -> Int -> Int -> [String]
+solvePuzzle :: [String] -> [Int] -> [Int] -> [Int] -> [Int] -> Int -> Int -> Maybe [String]
 solvePuzzle board left right top bot i j
-  | i >= length board && j == 0 && checkSpecs board left right top bot 0 0 = board
+  | i >= length board && j == 0 && checkSpecs board left right top bot 0 0 = Just board
   | j >= length (head board) = solvePuzzle board left right top bot (i+1) 0
-  | i >= length board = []
+  | i >= length board = Nothing
   | otherwise =
 
     -- Check for Horizontal Placements
@@ -156,7 +161,7 @@ solvePuzzle board left right top bot i j
       solvePuzzle board left right top bot i (j+1)
 
 
-solveHelper :: [String] -> [Int] -> [Int] -> [Int] -> [Int] -> Int -> Int -> [String]
+solveHelper :: [String] -> [Int] -> [Int] -> [Int] -> [Int] -> Int -> Int -> Maybe [String]
 solveHelper board left right top bot i j
   | (board !! i) !! j == 'T' =
     -- +- Condition
