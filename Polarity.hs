@@ -79,25 +79,25 @@ checkV top bot posV negV index isRepeat
 
 hLoop :: [String] -> Int -> Int -> [Int] -> [Int] -> ([Int], [Int])
 hLoop [] _ _ pos neg = (pos, neg)
-hLoop (x:xs) i j posCountHor negCountHor
-  | x == ['+'] =
-    let posNew = mutateList posCountHor i
-    in hLoop xs (i+1) j posNew negCountHor
-  | x == ['-'] =
-    let negNew = mutateList negCountHor i
-    in hLoop xs (i+1) j posCountHor negNew
-  | otherwise = hLoop xs (i+1) j posCountHor negCountHor
+hLoop (row:rows) i j pos neg =
+  -- Get the j-th character in the row (safe version)
+  let cell = if j < length row then row !! j else ' ' 
+  in case cell of
+    '+' -> hLoop rows (i+1) j (mutateList pos i) neg
+    '-' -> hLoop rows (i+1) j pos (mutateList neg i)
+    _   -> hLoop rows (i+1) j pos neg
 
 vLoop :: [String] -> Int -> Int -> [Int] -> [Int] -> ([Int], [Int])
 vLoop [] _ _ pos neg = (pos, neg)
-vLoop (x:xs) i j posCountVer negCountVer
-  | x == ['+'] =
-    let posNew = mutateList posCountVer j
-    in vLoop xs i (j+1) posNew negCountVer
-  | x == ['-'] =
-    let negNew = mutateList negCountVer j
-    in vLoop xs i (j+1) posCountVer negNew
-  | otherwise = vLoop xs i (j+1) posCountVer negCountVer
+vLoop (col:cols) i j pos neg =
+  let 
+    -- Safe character access at position i (since we're processing columns)
+    cell = if i < length col then col !! i else ' '
+  in case cell of
+    '+' -> vLoop cols i (j+1) (mutateList pos j) neg  -- Increment column's + count
+    '-' -> vLoop cols i (j+1) pos (mutateList neg j)  -- Increment column's - count
+    _   -> vLoop cols i (j+1) pos neg                -- Ignore other characters
+
 
 mutateList :: [Int] -> Int -> [Int]
 mutateList old index =
