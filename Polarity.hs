@@ -123,7 +123,7 @@ mutateBoard board i j newVal =
 -- if i == length board && j == 0 then
 solvePuzzle :: [String] -> [Int] -> [Int] -> [Int] -> [Int] -> Int -> Int -> Maybe [String]
 solvePuzzle board left right top bot i j
-  | i >= length board && j == 0 && True = Just board --checkSpecs board left right top bot 0 0 = Just board
+  | i >= length board && j == 0 && checkSpecs board left right top bot 0 0 = Just board
   | j >= length (head board) = solvePuzzle board left right top bot (i+1) 0
   | i >= length board = Nothing
   | otherwise =
