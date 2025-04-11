@@ -14,17 +14,17 @@ polarity board specs =
 
 canPutHorizontal :: [String] -> Int -> Int -> String -> Bool
 canPutHorizontal board i j str
-  | j-1 >= 0 && board !! i !! (j-1) == head str = False
-  | i-1 >= 0 && board !! (i-1) !! j == head str = False
-  | i-1 >= 0 && board !! (i-1) !! (j+1) == str !! 1 = False
-  | j+2 < length (head board) && board !! i !! (j+2) == str !! 1 = False
+  | j-1 >= 0 && (board !! i) !! (j-1) == head str = False
+  | i-1 >= 0 && (board !! (i-1)) !! j == head str = False
+  | i-1 >= 0 && (board !! (i-1)) !! (j+1) == str !! 1 = False
+  | j+2 < length (head board) && (board !! i) !! (j+2) == str !! 1 = False
   | otherwise = True
 
 canPutVertical :: [String] -> Int -> Int -> String -> Bool
 canPutVertical board i j str
-  | j-1 >= 0 && board !! i !! (j-1) == head str = False
-  | i-1 >= 0 && board !! (i-1) !! j == head str = False
-  | j+1 < length (head board) && board !! i !! (j+1) == head str = False
+  | j-1 >= 0 && (board !! i) !! (j-1) == head str = False
+  | i-1 >= 0 && (board !! (i-1)) !! j == head str = False
+  | j+1 < length (head board) && (board !! i) !! (j+1) == head str = False
   | otherwise = True
 
 checkSpecs :: [String] -> [Int] -> [Int] -> [Int] -> [Int] -> Int -> Int -> Bool
@@ -118,8 +118,9 @@ mutateBoard board i j newVal =
 -- if i == length board && j == 0 then
 solvePuzzle :: [String] -> [Int] -> [Int] -> [Int] -> [Int] -> Int -> Int -> [String]
 solvePuzzle board left right top bot i j
-  | i == length board && j == 0 && checkSpecs board left right top bot 0 0 = board
+  | i >= length board && j == 0 && checkSpecs board left right top bot 0 0 = board
   | j >= length (head board) = solvePuzzle board left right top bot (i+1) 0
+  | i >= length board = []
   | otherwise =
 
     -- Check for Horizontal Placements
