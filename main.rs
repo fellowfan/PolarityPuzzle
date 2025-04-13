@@ -30,7 +30,7 @@ fn can_horizontal(board: & [&str], i: usize, j: usize, pattern: &str) -> bool
     else if i-1 >= 0 && board[i-1].as_bytes()[j+1] as char == ch[1]{
         return false;
     }
-    else if j+2 < pattern[0].len() && board[i].as_bytes()[j+2] as char == ch[1]{
+    else if j+2 < board[0].len() && board[i].as_bytes()[j+2] as char == ch[1]{
         return false;
     }
     
@@ -47,7 +47,7 @@ fn can_vertical(board: & [&str], i: usize, j: usize, pattern: &str) -> bool
     else if i-1 >= 0 && board[i-1].as_bytes()[j] as char == ch[0]{
         return false;
     }
-    else if j+1 < pattern[0].len() && board[i].as_bytes()[j+1] as char == ch[0]{
+    else if j+1 < board[0].len() && board[i].as_bytes()[j+1] as char == ch[0]{
         return false;
     }
     
