@@ -17,45 +17,49 @@ fn polarity(board: & [&str], specs: & (Vec<i32>, Vec<i32>, Vec<i32>, Vec<i32>)) 
           String::from("-+XXX-") ]
 }
 
-fn canHorizontal(board: & [&str], i: usize, j: usize, pattern: &str) -> bool
+fn can_horizontal(board: & [&str], i: usize, j: usize, pattern: &str) -> bool
 {
-    if j-1 >= 0 && rules[i][j-1] == pattern[0]{
+    let ch: Vec<char> = pattern.chars().collect();
+
+    if j-1 >= 0 && board[i].as_bytes()[j-1] == ch[0]{
         return false;
     }
-    else if i-1 >= 0 && rules[i-1][j] == pattern[0]{
+    else if i-1 >= 0 && board[i-1].as_bytes()[j] == ch[0]{
         return false;
     }
-    else if i-1 >= 0 && rules[i-1][j+1] == pattern[1]{
+    else if i-1 >= 0 && board[i-1].as_bytes()[j+1] == ch[1]{
         return false;
     }
-    else if j+2 < pattern[0].len() && rules[i][j+2] == pattern[1]{
+    else if j+2 < pattern[0].len() && board[i].as_bytes()[j+2] == ch[1]{
         return false;
     }
     
-    return true;
+    true
 }
 
-fn canVertical(board: & [&str], i: usize, j: usize, pattern: &str) -> bool
+fn can_vertical(board: & [&str], i: usize, j: usize, pattern: &str) -> bool
 {
-    if j-1 >= 0 && rules[i][j-1] == pattern[0]{
+    let ch: Vec<char> = pattern.chars().collect();
+
+    if j-1 >= 0 && board[i].as_bytes()[j-1] == ch[0]{
+        return false;
+    }   
+    else if i-1 >= 0 && board[i-1].as_bytes()[j] == ch[0]{
         return false;
     }
-    else if i-1 >= 0 && rules[i-1][j] == pattern[0]{
-        return false;
-    }
-    else if j+1 < pattern[0].len() && rules[i][j+1] == pattern[0]{
+    else if j+1 < pattern[0].len() && board[i].as_bytes()[j+1] == ch[0]{
         return false;
     }
     
-    return true;
+    true
 }
     
-fn checkSpecs(board: & [&str], specs: & (Vec<i32>, Vec<i32>, Vec<i32>, Vec<i32>)) -> bool
+fn check_specs(board: & [&str], specs: & (Vec<i32>, Vec<i32>, Vec<i32>, Vec<i32>)) -> bool
 {
     
 }
 
-fn solvePuzzle(board: & [&str], i: usize, j: usize, specs: & (Vec<i32>, Vec<i32>, Vec<i32>, Vec<i32>)) -> bool
+fn solve_puzzle(board: & [&str], i: usize, j: usize, specs: & (Vec<i32>, Vec<i32>, Vec<i32>, Vec<i32>)) -> bool
 {
     
 }
