@@ -112,6 +112,18 @@ fn check_specs(board: &mut Vec<Vec<char>>, specs: & (Vec<i32>, Vec<i32>, Vec<i32
     true
 }
 
+fn is_row_valid(grid: &[Vec<char>], row: usize, specs: &(Vec<i32>, Vec<i32>, Vec<i32>, Vec<i32>)) -> bool {
+    let (mut pos, mut neg) = (0, 0);
+    for &c in &grid[row] {
+        match c {
+            '+' => pos += 1,
+            '-' => neg += 1,
+            _ => {}
+        }
+    }
+    (specs.0[row] == -1 || pos <= specs.0[row]) && 
+    (specs.1[row] == -1 || neg <= specs.1[row])
+}
 
 fn solve_puzzle(board: & [&str], i: usize, j: usize, specs: & (Vec<i32>, Vec<i32>, Vec<i32>, Vec<i32>)) -> Vec<String>
 {
@@ -129,7 +141,12 @@ fn solve_puzzle(board: & [&str], i: usize, j: usize, specs: & (Vec<i32>, Vec<i32
         
         // Move to next row if at end of current row
         if j >= grid[0].len() {
-            return backtrack(grid, i + 1, 0, specs);
+
+            if is_row_valid(grid, i, specs) {
+                return backtrack(grid, i + 1, 0, specs);
+            } else{
+                return false;
+            }
         }
     
         match grid[i][j] {
@@ -222,4 +239,3 @@ fn solve_puzzle(board: & [&str], i: usize, j: usize, specs: & (Vec<i32>, Vec<i32
 #[cfg(test)]
 #[path = "tests.rs"]
 mod tests;
-
