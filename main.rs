@@ -10,24 +10,25 @@ fn polarity(board: & [&str], specs: & (Vec<i32>, Vec<i32>, Vec<i32>, Vec<i32>)) 
 {
     // 5x6 solution hardcoded to demonstrate return type
 
-          vec![ String::from("+-+-X-"), 
+    solve_puzzle(board, 0, 0, specs)
+         /* vec![ String::from("+-+-X-"), 
           String::from("-+-+X+"), 
           String::from("XX+-+-"), 
           String::from("XX-+X+"), 
-          String::from("-+XXX-") ]
+          String::from("-+XXX-") ] */
 }
 
 fn can_horizontal(board: &mut Vec<Vec<char>>, i: usize, j: usize, pattern: &str) -> bool
 {
     let ch: Vec<char> = pattern.chars().collect();
 
-    if j-1 >= 0 && board[i][j-1] as char == ch[0]{
+    if j >= 1 && board[i][j-1] as char == ch[0]{
         return false;
     }
-    else if i-1 >= 0 && board[i-1][j] as char == ch[0]{
+    else if i >= 1 && board[i-1][j] as char == ch[0]{
         return false;
     }
-    else if i-1 >= 0 && board[i-1][j+1] as char == ch[1]{
+    else if i >= 1 && board[i-1][j+1] as char == ch[1]{
         return false;
     }
     else if j+2 < board[0].len() && board[i][j+2] as char == ch[1]{
@@ -41,10 +42,10 @@ fn can_vertical(board: &mut Vec<Vec<char>>, i: usize, j: usize, pattern: &str) -
 {
     let ch: Vec<char> = pattern.chars().collect();
 
-    if j-1 >= 0 && board[i][j-1] as char == ch[0]{
+    if j >= 1 && board[i][j-1] as char == ch[0]{
         return false;
     }   
-    else if i-1 >= 0 && board[i-1][j] as char == ch[0]{
+    else if i >= 1 && board[i-1][j] as char == ch[0]{
         return false;
     }
     else if j+1 < board[0].len() && board[i][j+1] as char == ch[0]{
