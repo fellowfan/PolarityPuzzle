@@ -111,10 +111,93 @@ fn check_specs(board: & [&str], specs: & (Vec<i32>, Vec<i32>, Vec<i32>, Vec<i32>
     true
 }
 
-fn solve_puzzle(board: & [&str], i: usize, j: usize, specs: & (Vec<i32>, Vec<i32>, Vec<i32>, Vec<i32>)) -> bool
+
+fn solve_puzzle(board: & [&str], i: usize, j: usize, specs: & (Vec<i32>, Vec<i32>, Vec<i32>, Vec<i32>)) -> Vec<String>
 {
-    true
+    let mut grid: Vec<Vec<char>> = board.iter().map(|row| row.chars().collect()).collect();
+
+    if backtrack(grid, 0, 0, specs) {
+        return grid
+    }
+
+    fn backtrack(grid: &mut Vec<Vec<char>>, i: usize, j: usize, specs: & (Vec<i32>, Vec<i32>, Vec<i32>, Vec<i32>)) -> bool {
+        if i == grid.len() && j == 0{
+            if check_specs(grid, specs){
+                return check_specs(grid)
+            }
+        }
+        else if j >= grid[0].len(){
+            return backtrack(grid, i+1, 0, specs);
+        }
+        else{
+    
+            match grid[i][j] {
+                'L' => {
+                    if can_horizontal(grid, i, j, "+-"){
+                        grid[i][j] = '+';
+                        grid[i][j+1] = '-';
+
+                        if backtrack(grid, i, j+2, specs) return true;
+
+                        grid[i][j] = 'L';
+                        grid[i][j+1] = 'R';
+                    }
+                    if can_horizontal(grid, i, j, "-+"){
+                        grid[i][j] = '-';
+                        grid[i][j+1] = '+';
+
+                        if backtrack(grid, i, j+2, specs) return true;
+
+                        grid[i][j] = 'L';
+                        grid[i][j+1] = 'R';
+                    }
+                    else if can_horizontal(grid, i, j, "XX"){
+                        grid[i][j] = 'X';
+                        grid[i][j+1] = '+';
+
+                        if backtrack(grid, i, j+2, specs) return true;
+
+                        grid[i][j] = 'L';
+                        grid[i][j+1] = 'R';
+                    }
+                    else{
+                        grid[i][j] = 'X';
+                        grid[i][j+1] = 'X';
+                        backtrack(grid, i, j+2, specs);
+                    }
+                }
+                'T' => {
+                    if can_horizontal(grid, i, j, "+-"){
+                        grid[i][j] = '+';
+                        grid[i+1][j] = '-';
+
+                        if backtrack(grid, i, j+1, specs) return true;
+
+                        grid[i][j] = 'T';
+                        grid[i+1][j] = 'B';
+                    }
+                    else if can_horizontal(grid, i, j, "-+"){
+                        grid[i][j] = '-';
+                        grid[i+1][j] = '+';
+
+                        if backtrack(grid, i, j+1, specs) return true;
+
+                        grid[i][j] = 'T';
+                        grid[i+1][j] = 'B';
+                    }
+                    else{
+                        grid[i][j] = 'X';
+                        grid[i+1][j] = 'X';
+                        backtrack(grid, i, j+1, specs);
+                    }
+                }
+            }
+        }
+        false
+    }
+    grid
 }
+    
 #[cfg(test)]
 #[path = "tests.rs"]
 mod tests;
