@@ -121,80 +121,98 @@ fn solve_puzzle(board: & [&str], i: usize, j: usize, specs: & (Vec<i32>, Vec<i32
         return grid.into_iter().map(|chars| chars.into_iter().collect()).collect();
     }
 
-    fn backtrack(grid: &mut Vec<Vec<char>>, i: usize, j: usize, specs: & (Vec<i32>, Vec<i32>, Vec<i32>, Vec<i32>)) -> bool {
-        if i == grid.len() && j == 0{
-            if check_specs(grid, specs){
-                return check_specs(grid, specs);
-            }
+    fn backtrack(grid: &mut Vec<Vec<char>>, i: usize, j: usize, specs: &(Vec<i32>, Vec<i32>, Vec<i32>, Vec<i32>)) -> bool {
+        // Base case: reached end of grid
+        if i >= grid.len() {
+            return check_specs(grid, specs);
         }
-        else if j >= grid[0].len(){
-            return backtrack(grid, i+1, 0, specs);
+        
+        // Move to next row if at end of current row
+        if j >= grid[0].len() {
+            return backtrack(grid, i + 1, 0, specs);
         }
-        else{
     
-            match grid[i][j] {
-                'L' => {
-                    if can_horizontal(grid, i, j, "+-"){
-                        grid[i][j] = '+';
-                        grid[i][j+1] = '-';
-
-                        if backtrack(grid, i, j+2, specs){ return true};
-
-                        grid[i][j] = 'L';
-                        grid[i][j+1] = 'R';
-                    }
-                    if can_horizontal(grid, i, j, "-+"){
-                        grid[i][j] = '-';
-                        grid[i][j+1] = '+';
-
-                        if backtrack(grid, i, j+2, specs){ return true};
-
-                        grid[i][j] = 'L';
-                        grid[i][j+1] = 'R';
-                    }
-                    else if can_horizontal(grid, i, j, "XX"){
-                        grid[i][j] = 'X';
-                        grid[i][j+1] = '+';
-
-                        if backtrack(grid, i, j+2, specs){ return true};
-
-                        grid[i][j] = 'L';
-                        grid[i][j+1] = 'R';
-                    }
-                    else{
-                        grid[i][j] = 'X';
-                        grid[i][j+1] = 'X';
-                        backtrack(grid, i, j+2, specs);
-                    }
+        match grid[i][j] {
+            'L' => {
+                // Must have matching 'R' to the right
+                if j + 1 >= grid[0].len() || grid[i][j+1] != 'R' {
+                    return backtrack(grid, i, j + 1, specs);
                 }
-                'T' => {
-                    if can_horizontal(grid, i, j, "+-"){
-                        grid[i][j] = '+';
-                        grid[i+1][j] = '-';
-
-                        if backtrack(grid, i, j+1, specs){ return true};
-
-                        grid[i][j] = 'T';
-                        grid[i+1][j] = 'B';
+    
+                // Try +- pattern
+                if can_horizontal(grid, i, j, "+-") {
+                    grid[i][j] = '+';
+                    grid[i][j+1] = '-';
+                    if backtrack(grid, i, j + 2, specs) {
+                        return true;
                     }
-                    else if can_horizontal(grid, i, j, "-+"){
-                        grid[i][j] = '-';
-                        grid[i+1][j] = '+';
-
-                        if backtrack(grid, i, j+1, specs){ return true};
-
-                        grid[i][j] = 'T';
-                        grid[i+1][j] = 'B';
-                    }
-                    else{
-                        grid[i][j] = 'X';
-                        grid[i+1][j] = 'X';
-                        backtrack(grid, i, j+1, specs);
-                    }
+                    grid[i][j] = 'L';
+                    grid[i][j+1] = 'R';
                 }
-                _ => { return false; }
+    
+                // Try -+ pattern
+                if can_horizontal(grid, i, j, "-+") {
+                    grid[i][j] = '-';
+                    grid[i][j+1] = '+';
+                    if backtrack(grid, i, j + 2, specs) {
+                        return true;
+                    }
+                    grid[i][j] = 'L';
+                    grid[i][j+1] = 'R';
+                }
+    
+                // Try XX pattern
+                grid[i][j] = 'X';
+                grid[i][j+1] = 'X';
+                if backtrack(grid, i, j + 2, specs) {
+                    return true;
+                }
+                grid[i][j] = 'L';
+                grid[i][j+1] = 'R';
+            }
+            'T' => {
+                // Must have matching 'B' below
+                if i + 1 >= grid.len() || grid[i+1][j] != 'B' {
+                    return backtrack(grid, i, j + 1, specs);
+                }
+    
+                // Try vertical +- pattern
+                if can_vertical(grid, i, j, "+-") {
+                    grid[i][j] = '+';
+                    grid[i+1][j] = '-';
+                    if backtrack(grid, i, j + 1, specs) {
+                        return true;
+                    }
+                    grid[i][j] = 'T';
+                    grid[i+1][j] = 'B';
+                }
+    
+                // Try vertical -+ pattern
+                if can_vertical(grid, i, j, "-+") {
+                    grid[i][j] = '-';
+                    grid[i+1][j] = '+';
+                    if backtrack(grid, i, j + 1, specs) {
+                        return true;
+                    }
+                    grid[i][j] = 'T';
+                    grid[i+1][j] = 'B';
+                }
+    
+                // Try XX pattern
+                grid[i][j] = 'X';
+                grid[i+1][j] = 'X';
+                if backtrack(grid, i, j + 1, specs) {
+                    return true;
+                }
+                grid[i][j] = 'T';
+                grid[i+1][j] = 'B';
+            }
+            _ => {
+                // Skip already filled cells
+                return backtrack(grid, i, j + 1, specs);
             }
         }
+    
         false
     }
     grid.into_iter().map(|chars| chars.into_iter().collect()).collect()
